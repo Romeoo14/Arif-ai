@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arif AI - Voice Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #74b9ff, #a29bfe);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .chat-container {
+            width: 400px;
+            height: 550px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            background-color: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            animation: fadeIn 1s ease;
+        }
+
+        .chatbox {
+            flex-grow: 1;
+            overflow-y: auto;
+            margin-bottom: 10px;
+            padding-right: 20px;
+        }
+
+        .user-input {
+            width: 100%;
+            height: 50px;
+            padding: 15px;
+            font-size: 16px;
+            border-radius: 25px;
+            border: 1px solid #dcdde1;
+            margin-top: 10px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .user-input:focus {
+            border: 1px solid #74b9ff;
+            box-shadow: 0 0 8px rgba(116, 185, 255, 0.5);
+        }
+
+        .send-btn {
+            padding: 12px 25px;
+            background-color: #74b9ff;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            font-weight: bold;
+            margin-top: 10px;
+            align-self: center;
+        }
+
+        .send-btn:hover {
+            background-color: #0984e3;
+        }
+
+        .voice-btn {
+            padding: 12px 20px;
+            background-color: #00b894;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            font-weight: bold;
+            margin-top: 10px;
+            align-self: center;
+        }
+
+        .voice-btn:hover {
+            background-color: #00b0b9;
+        }
+
+        .user-message,
+        .ai-message {
+            max-width: 75%;
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 20px;
+            word-wrap: break-word;
+            font-size: 16px;
+            line-height: 1.4;
+        }
+
+        .user-message {
+            background-color: #74b9ff;
+            color: white;
+            align-self: flex-end;
+            animation: slideInRight 0.5s ease;
+        }
+
+        .ai-message {
+            background-color: #dfe6e9;
+            color: #2d3436;
+            align-self: flex-start;
+            animation: slideInLeft 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+            }
+            to {
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideInLeft {
+            from {
+                transform: translateX(-100%);
+            }
+            to {
+                transform: translateX(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div id="chatbox" class="chatbox">
+            <!-- Messages will appear here -->
+        </div>
+        <textarea id="userInput" class="user-input" placeholder="Ask me something..."></textarea>
+        <button id="sendBtn" class="send-btn">Send</button>
+        <button id="voiceSearchBtn" class="voice-btn">🎤 Voice Search</button>
+    </div>
+
+    <script>
+        // Access HTML elements
+        const sendBtn = document.getElementById('sendBtn');
+        const voiceSearchBtn = document.getElementById('voiceSearchBtn');
+        const userInput = document.getElementById('userInput');
+        const chatbox = document.getElementById('chatbox');
+
+        // Function to handle sending messages
+        sendBtn.addEventListener('click', sendMessage);
+        function sendMessage() {
+            const inputText = userInput.value.trim();
+            if (!inputText) return;
+
+            chatbox.innerHTML += `<div class="user-message">${inputText}</div>`;
+            userInput.value = '';  // Clear input field
+
+            // Call AI search or API for internet results
+            getAIResponse(inputText);
+        }
+
+        // Function to simulate AI response
+        async function getAIResponse(query) {
+            const response = await fetch(`https://api.duckduckgo.com/?q=${query}&format=json`);
+            const data = await response.json();
+
+            const answer = data.AbstractText || "Sorry, I couldn't find anything.";
+            chatbox.innerHTML += `<div class="ai-message">${answer}</div>`;
+
+            chatbox.scrollTop = chatbox.scrollHeight; // Scroll to bottom
+        }
+
+        // Voice recognition setup (Web Speech API)
+        const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        recognition.lang = 'en-US';
+
+        // Start listening for voice input
+        voiceSearchBtn.addEventListener('click', () => {
+            recognition.start();
+            chatbox.innerHTML += `<div class="ai-message">Listening...</div>`;
+            chatbox.scrollTop = chatbox.scrollHeight;
+        });
+
+        // Process voice input when recognized
+        recognition.onresult = (event) => {
+            const voiceInput = event.results[0][0].transcript;
+            chatbox.innerHTML += `<div class="user-message">${voiceInput}</div>`;
+
+            getAIResponse(voiceInput);
+        };
+
+        // Handle errors
+        recognition.onerror = (event) => {
+            chatbox.innerHTML += `<div class="ai-message">Sorry, there was an error. Please try again.</div>`;
+        };
+    </script>
+</body>
+          </html>
